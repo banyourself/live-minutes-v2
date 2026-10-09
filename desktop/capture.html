@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'; img-src 'self' data:">
+<title>Live capture · Live Minutes</title>
+<link rel="stylesheet" href="ui.css">
+<link rel="stylesheet" href="capture.css">
+</head>
+<body>
+<div class="drag"></div>
+<main class="wrap">
+  <header class="top">
+    <div class="brand"><img src="logo.svg" alt="">Live capture</div>
+    <span class="pill" id="conn"><span class="dot" id="connDot"></span><span id="connText">Not connected</span></span>
+  </header>
+
+  <section class="live-card card" id="live" hidden aria-live="polite">
+    <div class="live-head">
+      <span class="pill live-pill"><span class="dot" id="liveDot"></span><span id="liveState">Live</span></span>
+      <span class="timer" id="timer">00:00</span>
+    </div>
+    <h2 id="liveTitle"></h2>
+    <div class="stats">
+      <div><div class="big" id="lines">0</div><div class="muted">lines sent</div></div>
+      <div><div class="big" id="drafting">-</div><div class="muted">AI draft</div></div>
+    </div>
+    <div class="last"><div class="muted">Latest caption</div><p class="selectable" id="lastLine">Waiting for the first caption…</p></div>
+    <p class="err" id="liveErr"></p>
+    <div class="row">
+      <button class="btn primary" id="openDraft">Open the draft</button>
+      <button class="btn danger" id="stop">Stop capture</button>
+    </div>
+    <label class="toggle"><input type="checkbox" id="floatOn"><span>Show the floating bar during meetings</span></label>
+  </section>
+
+  <ol class="stepper">
+    <li class="step" id="step1">
+      <div class="step-head"><span class="num">1</span><h3>Connect this computer</h3><span class="check" aria-hidden="true">✓</span></div>
+      <div class="step-body">
+        <div id="tokenDone" hidden>
+          <p>Connected to <b id="orgName"></b>. <button class="link" id="replaceToken">Use a different token</button></p>
+        </div>
+        <div id="tokenForm" class="grid">
+          <p>Create a capture token in Live Minutes under Settings, Capture devices, then paste it here. It only lets this computer send captions to your organization.</p>
+          <button class="btn small" id="getToken">Open Capture devices</button>
+          <div class="field"><label for="token">Capture token</label>
+            <input id="token" type="password" autocomplete="off" spellcheck="false" placeholder="Paste the token"></div>
+          <button class="btn primary" id="saveToken">Connect</button>
+        </div>
+        <p class="err" id="tokenErr"></p>
+      </div>
+    </li>
+
+    <li class="step" id="step2">
+      <div class="step-head"><span class="num">2</span><h3>Choose the meeting</h3><span class="check" aria-hidden="true">✓</span>
+        <button class="btn small refresh" id="refresh" aria-label="Refresh meetings">↻</button></div>
+      <div class="step-body">
+        <div class="meetings" id="meetings" role="radiogroup" aria-label="Open meetings"></div>
+        <div class="empty" id="empty" hidden>
+          <p>No open meetings yet. Start one in Live Minutes, or schedule one and it opens here when it begins.</p>
+          <button class="btn small" id="newMeeting">Start a meeting</button>
+        </div>
+      </div>
+    </li>
+
+    <li class="step" id="step3">
+      <div class="step-head"><span class="num">3</span><h3>Join Zoom and capture</h3><span class="check" aria-hidden="true">✓</span></div>
+      <div class="step-body grid">
+        <div class="field"><label for="zoom">Zoom link or meeting ID</label>
+          <input id="zoom" spellcheck="false" placeholder="https://zoom.us/j/123456789"></div>
+        <button class="btn primary wide" id="open">Join and capture</button>
+        <p class="muted">In Zoom, turn on captions (or open the transcript panel), then click <b>Pick captions area</b> in the Live Minutes bar at the bottom right. Let everyone know captions are being captured for minutes.</p>
+        <p class="err" id="zoomErr"></p>
+      </div>
+    </li>
+  </ol>
+
+  <footer class="foot muted"><button class="link" id="help">How capture works</button>
+    <span class="upd"><span id="version"></span><button class="link" id="updateBtn">Check for updates</button></span></footer>
+</main>
+<script src="capture.js"></script>
+</body>
+</html>

@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Live Minutes</title>
+<style>
+  :root { --bg:#f6f7f9; --panel:#fff; --text:#1c2230; --muted:#5d6678; --line:#e2e5ea;
+          --accent:#1f5fae; --accent-ink:#fff; --ok:#1f7a4a; --warn:#9a5b00; --bad:#b3261e; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#12151b; --panel:#1b2029; --text:#e6e9ef; --muted:#9aa3b2; --line:#2c333f;
+            --accent:#5b9bef; --accent-ink:#0b1220; --ok:#5fcf93; --warn:#f0b35a; --bad:#ff8a80; }
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif; }
+  header { padding:14px 20px; border-bottom:1px solid var(--line); background:var(--panel); display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+  header h1 { font-size:18px; margin:0; }
+  .pill { font-size:12px; padding:2px 10px; border-radius:99px; border:1px solid var(--line); color:var(--muted); }
+  .pill.ok { color:var(--ok); border-color:var(--ok); } .pill.bad { color:var(--bad); border-color:var(--bad); }
+  main { display:grid; grid-template-columns: minmax(300px, 380px) 1fr; gap:16px; padding:16px; max-width:1400px; margin:0 auto; }
+  @media (max-width: 900px) { main { grid-template-columns: 1fr; } }
+  section { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:14px 16px; margin-bottom:16px; }
+  h2 { font-size:14px; text-transform:uppercase; letter-spacing:.04em; color:var(--muted); margin:0 0 10px; }
+  label { display:block; font-size:13px; color:var(--muted); margin:8px 0 4px; }
+  input[type=text], select, textarea { width:100%; padding:8px 10px; border:1px solid var(--line); border-radius:8px; background:var(--bg); color:var(--text); font:inherit; }
+  textarea { min-height:70px; resize:vertical; }
+  button { padding:8px 14px; border-radius:8px; border:1px solid var(--line); background:var(--bg); color:var(--text); font:inherit; cursor:pointer; }
+  button.primary { background:var(--accent); color:var(--accent-ink); border-color:var(--accent); }
+  button.danger { color:var(--bad); }
+  .row { display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; align-items:center; }
+  .muted { color:var(--muted); font-size:13px; }
+  code, .mono { font-family: ui-monospace, Consolas, monospace; font-size:12.5px; }
+  .log { max-height:280px; overflow:auto; background:var(--bg); border:1px solid var(--line); border-radius:8px; padding:8px; white-space:pre-wrap; }
+  .topic { border-top:1px solid var(--line); padding:10px 0; }
+  .topic:first-child { border-top:none; }
+  .topic b { display:block; margin-bottom:2px; }
+  .motion { padding:8px 10px; border:1px solid var(--line); border-radius:8px; margin:6px 0; }
+  .motion .st { font-size:12px; font-weight:600; }
+  .st.pass { color:var(--ok); } .st.pend { color:var(--warn); } .st.fail { color:var(--bad); }
+  .problem { color:var(--warn); font-size:13px; }
+  .error { color:var(--bad); }
+  .radio { display:flex; gap:14px; } .radio label { display:flex; gap:6px; align-items:center; color:var(--text); margin:4px 0; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Live Minutes</h1>
+  <span id="status" class="pill">no session</span>
+  <span id="aiPill" class="pill">AI not connected</span>
+  <span id="capturePill" class="pill">captions: waiting</span>
+  <span class="muted" style="margin-left:auto">Runs only on this computer · drafts need the secretary's review</span>
+</header>
+<main>
+<div>
+  <section>
+    <h2>1 · Notes document</h2>
+    <label for="file">Agenda, minutes template, or list of topics (.docx, .pdf, .txt)</label>
+    <input id="file" type="file" accept=".docx,.pdf,.txt,.md">
+    <label for="title">Title</label>
+    <input id="title" type="text" placeholder="ASG Minutes 2026.10.07">
+    <label for="date">Date (used if a new template is generated)</label>
+    <input id="date" type="text" placeholder="October 7, 2026; 9:00 a.m.">
+    <label>Mode</label>
+    <div class="radio">
+      <label><input type="radio" name="run" value="live" checked> Live: update during the meeting</label>
+      <label><input type="radio" name="run" value="after"> After: fill in when it ends</label>
+    </div>
+    <div class="row"><button class="primary" id="start">Start session</button></div>
+    <p class="muted" id="modeNote"></p>
+  </section>
+
+  <section>
+    <h2>2 · AI connection</h2>
+    <label for="provider">Provider</label>
+    <select id="provider"></select>
+    <label for="model">Model</label>
+    <input id="model" type="text" placeholder="e.g. claude-sonnet-5, or the model name your provider lists">
+    <p class="muted">API keys live in <code>.env</code> beside the app, never in this page. Local models (LM Studio, Ollama) need no key.</p>
+    <div class="row"><button id="saveAI">Save</button></div>
+  </section>
+
+  <section>
+    <h2>3 · Meeting sources</h2>
+    <b>Live captions (browser extension)</b>
+    <p class="muted">Join the meeting from the Zoom web client in Chrome, open the transcript panel, then use the Live Minutes extension's "Pick captions area". Capture token:</p>
+    <div class="mono log" id="token" style="max-height:none"></div>
+    <div class="row"><b style="margin-top:6px">Import a transcript or chat file</b></div>
+    <input id="importFile" type="file" accept=".vtt,.txt,.srt">
+    <label for="paste">…or paste text from a Zoom recording page</label>
+    <textarea id="paste"></textarea>
+    <div class="row"><button id="import">Import</button></div>
+    <div id="zoomBox" style="display:none">
+      <div class="row"><b>Zoom (authorized by the host account)</b></div>
+      <div class="row">
+        <button id="zoomConnect">Connect Zoom</button>
+        <button id="zoomList">List recordings</button>
+        <button id="zoomDisconnect" class="danger">Disconnect</button>
+      </div>
+      <div id="zoomRecs"></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Secretary notes for the AI</h2>
+    <textarea id="notes" placeholder="e.g. Room account voices: Kevin and the Vice President. Kevin is the new Secretary."></textarea>
+    <div class="row"><button id="saveNotes">Save notes</button></div>
+  </section>
+</div>
+
+<div>
+  <section>
+    <h2>Draft minutes</h2>
+    <div class="row" style="margin-top:0">
+      <button id="draftNow">Update draft now</button>
+      <button class="primary" id="finish">Finish &amp; build Word file</button>
+      <a id="download" href="/api/download" style="display:none"><button>Download .docx</button></a>
+      <button class="danger" id="delete" style="margin-left:auto">Delete session data</button>
+    </div>
+    <p id="err" class="error"></p>
+    <div id="problems"></div>
+    <div id="draft" class="muted">No draft yet.</div>
+  </section>
+  <section>
+    <h2>Motion tracker (confirm live)</h2>
+    <div id="motions" class="muted">No motions detected yet.</div>
+  </section>
+  <section>
+    <h2>Transcript</h2>
+    <div id="lineCount" class="muted"></div>
+    <div id="transcript" class="log mono"></div>
+  </section>
+</div>
+</main>
+<script>
+const $ = id => document.getElementById(id);
+const api = async (path, body) => {
+  const r = await fetch(path, {method: body === undefined ? "GET" : "POST",
+    headers: {"Content-Type": "application/json", "X-Minutes-UI": "1"},
+    body: body === undefined ? undefined : JSON.stringify(body)});
+  const j = await r.json().catch(() => ({error: "bad response"}));
+  if (!r.ok || j.error) throw new Error(j.error || ("HTTP " + r.status));
+  return j;
+};
+const show = e => { $("err").textContent = e ? e.message || e : ""; };
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const fileB64 = f => new Promise((ok, no) => { const r = new FileReader();
+  r.onload = () => ok(r.result.split(",")[1]); r.onerror = no; r.readAsDataURL(f); });
+const fileText = f => new Promise((ok, no) => { const r = new FileReader();
+  r.onload = () => ok(r.result); r.onerror = no; r.readAsText(f); });
+
+let providersLoaded = false, lastCount = -1;
+
+async function refresh() {
+  let st;
+  try { st = await api("/api/state"); } catch (e) { return show(e); }
+  $("token").textContent = st.capture_token;
+  if (!providersLoaded) {
+    $("provider").innerHTML = st.providers.map(p =>
+      `<option value="${p.id}">${esc(p.label)}${p.ready ? "" : " (set " + esc(p.key_var || "base URL") + " in .env)"}</option>`).join("");
+    providersLoaded = true;
+  }
+  $("zoomBox").style.display = st.zoom.configured ? "" : "none";
+  $("zoomConnect").textContent = st.zoom.connected ? "Reconnect Zoom" : "Connect Zoom";
+  const s = st.session;
+  if (!s) { $("status").textContent = "no session"; return; }
+  $("status").textContent = s.title + " · " + s.run_mode + " · " + s.status;
+  $("status").className = "pill " + (s.status === "error" ? "bad" : "ok");
+  $("aiPill").textContent = s.provider && s.model ? s.provider + " · " + s.model : "AI not connected";
+  $("aiPill").className = "pill " + (s.provider && s.model ? "ok" : "");
+  if (document.activeElement !== $("provider") && s.provider) $("provider").value = s.provider;
+  if (document.activeElement !== $("model") && !$("model").value) $("model").value = s.model || "";
+  if (document.activeElement !== $("notes") && !$("notes").value) $("notes").value = s.notes || "";
+  $("modeNote").textContent = s.mode === "generated"
+    ? "No agenda format found, so a simple template was generated from your topics."
+    : (s.mode ? "Using your document's own format." : "");
+  $("err").textContent = s.error || "";
+  $("capturePill").textContent = "transcript: " + s.line_count + " lines";
+  if (s.line_count !== lastCount) {
+    $("transcript").textContent = s.transcript_tail.join("\n");
+    $("transcript").scrollTop = 1e9; lastCount = s.line_count;
+  }
+  $("lineCount").textContent = s.line_count + " lines · " + s.pending_lines + " not yet in the draft";
+  $("download").style.display = s.has_output ? "" : "none";
+  $("problems").innerHTML = (s.problems || []).map(p => `<div class="problem">⚠ Didn't match the template: ${esc(p)}</div>`).join("");
+  const d = s.draft || {};
+  const parts = [];
+  if (d.order_time) parts.push(`<div class="topic"><b>Call to order</b>${esc(d.order_time)}</div>`);
+  (d.fills || []).forEach(f => parts.push(`<div class="topic"><b>${esc(f.under)}</b>${esc(f.text)}</div>`));
+  (d.motions || []).forEach(f => parts.push(`<div class="topic"><b>${esc(f.under)}</b>${esc(f.text)}</div>`));
+  (d.replace || []).forEach(f => parts.push(`<div class="topic"><b>${esc(f.match)}</b>${esc(f.text)}</div>`));
+  Object.entries(d.reports || {}).forEach(([k, v]) => parts.push(`<div class="topic"><b>${esc(k)}</b>${esc(typeof v === "string" ? v : v.text)}</div>`));
+  if ((d.summary || []).length) parts.push(`<div class="topic"><b>Summary</b>${d.summary.map(esc).join("<br>")}</div>`);
+  if (d.adjourn_time) parts.push(`<div class="topic"><b>Adjourned</b>${esc(d.adjourn_time)}</div>`);
+  $("draft").innerHTML = parts.length ? parts.join("") : "No draft yet.";
+  $("draft").className = parts.length ? "" : "muted";
+  $("motions").innerHTML = (s.motions || []).length ? s.motions.map(m => {
+    const cls = /pass|carr/.test(m.status) ? "pass" : /fail/.test(m.status) ? "fail" : "pend";
+    const tally = Object.entries(m.tally || {}).map(([k, v]) => k + " " + v).join(", ");
+    return `<div class="motion"><span class="st ${cls}">${esc(m.status)}</span> · moved by ${esc(m.mover || "?")}` +
+      (m.seconder ? `, seconded by ${esc(m.seconder)}` : "") + (tally ? ` · ${esc(tally)}` : "") +
+      `<div class="muted">${esc(m.text)}</div></div>`;
+  }).join("") : "No motions detected yet.";
+  $("motions").className = (s.motions || []).length ? "" : "muted";
+}
+
+$("start").onclick = async () => { try {
+  const f = $("file").files[0]; if (!f) throw new Error("choose a file first");
+  await api("/api/session", {filename: f.name, data_b64: await fileB64(f), title: $("title").value,
+    date: $("date").value, run_mode: document.querySelector("input[name=run]:checked").value});
+  lastCount = -1; show(); refresh(); } catch (e) { show(e); } };
+$("saveAI").onclick = async () => { try { await api("/api/settings", {provider: $("provider").value, model: $("model").value.trim()}); show(); refresh(); } catch (e) { show(e); } };
+$("saveNotes").onclick = async () => { try { await api("/api/settings", {notes: $("notes").value}); show(); } catch (e) { show(e); } };
+$("import").onclick = async () => { try {
+  const f = $("importFile").files[0];
+  const text = f ? await fileText(f) : $("paste").value;
+  if (!text.trim()) throw new Error("choose a file or paste text");
+  const r = await api("/api/import", {filename: f ? f.name : "pasted.txt", text});
+  $("paste").value = ""; $("importFile").value = ""; show(); alert("Imported " + r.lines + " " + r.kind + " lines."); refresh();
+} catch (e) { show(e); } };
+$("draftNow").onclick = async () => { try { await api("/api/draft", {full: true}); show(); } catch (e) { show(e); } };
+$("finish").onclick = async () => { try {
+  $("finish").disabled = true; const r = await api("/api/finish", {});
+  show(); alert("Built " + r.file + "\n" + r.applied.length + " changes applied" + (r.skipped.length ? ", " + r.skipped.length + " skipped (see warnings)" : "")); refresh();
+} catch (e) { show(e); } finally { $("finish").disabled = false; } };
+$("delete").onclick = async () => { if (!confirm("Delete this session's transcript, draft and files from this computer?")) return;
+  try { await api("/api/session/delete", {}); location.reload(); } catch (e) { show(e); } };
+$("zoomConnect").onclick = () => { location.href = "/zoom/connect"; };
+$("zoomDisconnect").onclick = async () => { try { await api("/api/zoom/disconnect", {}); refresh(); } catch (e) { show(e); } };
+$("zoomList").onclick = async () => { try {
+  const r = await api("/api/zoom/recordings", {days: 30});
+  $("zoomRecs").innerHTML = r.recordings.length ? r.recordings.map(x =>
+    `<div class="row"><span class="muted">${esc(x.start_time)} · ${esc(x.topic)} · ${esc(x.files.join(", "))}</span>
+     <button data-uuid="${esc(x.uuid)}">Import</button></div>`).join("") : "<p class='muted'>No recordings found.</p>";
+  $("zoomRecs").querySelectorAll("button").forEach(b => b.onclick = async () => { try {
+    const r2 = await api("/api/zoom/import", {uuid: b.dataset.uuid});
+    alert("Imported " + r2.transcript_lines + " transcript and " + r2.chat_lines + " chat lines."); refresh(); } catch (e) { show(e); } });
+} catch (e) { show(e); } };
+
+refresh(); setInterval(refresh, 2000);
+</script>
+</body>
+</html>

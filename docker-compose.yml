@@ -1,0 +1,116 @@
+services:
+  db:
+    image: postgres:16-alpine@sha256:721873c34ceb9f8d8fc265984940dc982404c105f19ad51be9fdc5970a6080ea
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: liveminutes
+      POSTGRES_USER: liveminutes
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U liveminutes -d liveminutes"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  web:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql://liveminutes:${POSTGRES_PASSWORD}@db:5432/liveminutes
+      STORAGE_DIR: /data/files
+    volumes:
+      - files:/data/files
+    ports:
+      - "127.0.0.1:8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  worker:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql://liveminutes:${POSTGRES_PASSWORD}@db:5432/liveminutes
+      STORAGE_DIR: /data/files
+    volumes:
+      - files:/data/files
+      - ${BACKUP_DIR:-./backups}:/backups:ro
+    command: ["python", "-m", "server.worker"]
+    healthcheck:
+      disable: true
+    depends_on:
+      web:
+        condition: service_started
+
+  backup:
+    image: postgres:16-alpine@sha256:721873c34ceb9f8d8fc265984940dc982404c105f19ad51be9fdc5970a6080ea
+    restart: unless-stopped
+    environment:
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+      KEEP_DAYS: ${BACKUP_KEEP_DAYS:-14}
+    volumes:
+      - files:/data/files:ro
+      - ${BACKUP_DIR:-./backups}:/backups
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        while true; do
+          d=$$(date -u +%Y-%m-%d)
+          pg_dump -h db -U liveminutes -d liveminutes -Fc -f /backups/db-$$d.dump.part && mv /backups/db-$$d.dump.part /backups/db-$$d.dump
+          tar -czf /backups/files-$$d.tar.gz.part --exclude=files/downloads -C /data files && mv /backups/files-$$d.tar.gz.part /backups/files-$$d.tar.gz
+          find /backups -name 'db-*.dump' -mtime +$$KEEP_DAYS -delete
+          find /backups -name 'files-*.tar.gz' -mtime +$$KEEP_DAYS -delete
+          sleep 86400
+        done
+    depends_on:
+      db:
+        condition: service_healthy
+
+  ollama:
+    image: ollama/ollama:0.34.2@sha256:da6e0dc5651df159e45686fd663c4dbe1624a52c44d7280eeac1551d8f865532
+    profiles: ["tunnel"]
+    restart: unless-stopped
+    cpus: 3
+    cpu_shares: 256
+    mem_limit: 14g
+    environment:
+      OLLAMA_NUM_PARALLEL: "1"
+      OLLAMA_MAX_LOADED_MODELS: "1"
+      OLLAMA_KEEP_ALIVE: "15m"
+    volumes:
+      - ollama:/root/.ollama
+
+  libretranslate:
+    image: libretranslate/libretranslate:v1.9.6@sha256:1de2d7056bb8ad607a412f4563d9abe324ff632b43b5be9428bcc8e213aebb32
+    profiles: ["tunnel"]
+    restart: unless-stopped
+    cpus: 2
+    cpu_shares: 256
+    mem_limit: 3g
+    environment:
+      LT_LOAD_ONLY: "en,es,vi,zh,zt,ko,tl"
+      LT_DISABLE_WEB_UI: "true"
+      LT_THREADS: "2"
+    volumes:
+      - libretranslate:/home/libretranslate/.local
+
+  tunnel:
+    image: cloudflare/cloudflared:2026.9.3@sha256:072c067d25ccbe61d46e18f0d0723255f2bb5304f7317caa95b27031520ff92c
+    profiles: ["tunnel"]
+    restart: unless-stopped
+    command: ["tunnel", "--no-autoupdate", "--config", "/etc/cloudflared/config.yml", "run"]
+    volumes:
+      - ${TUNNEL_DIR:?set TUNNEL_DIR in .env}:/etc/cloudflared:ro
+    depends_on:
+      web:
+        condition: service_started
+
+volumes:
+  pgdata:
+  files:
+  ollama:
+  libretranslate:

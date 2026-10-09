@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'; img-src 'self' data:">
+<title>Live Minutes</title>
+<link rel="stylesheet" href="ui.css">
+<link rel="stylesheet" href="welcome.css">
+</head>
+<body>
+<div class="drag"></div>
+<div class="shell">
+  <aside class="hero">
+    <div class="brand"><img src="logo.svg" alt="">Live Minutes</div>
+    <div class="demo-wrap" aria-hidden="true">
+    <div class="demo card">
+      <div class="demo-head">
+        <div>
+          <div class="demo-title">General Meeting</div>
+          <div class="muted">Associated Student Government</div>
+        </div>
+        <span class="pill"><span class="dot live"></span><span id="demoClock">00:00</span></span>
+      </div>
+      <div class="demo-label">Live captions</div>
+      <ul class="demo-lines" id="demoLines"></ul>
+      <div class="demo-label">Draft minutes</div>
+      <ul class="demo-draft" id="demoDraft"></ul>
+    </div>
+    <div class="demo-bar"><img src="logo.svg" alt=""><span class="dot live"></span><b>Live</b><span class="muted" id="demoClock2">00:00</span>
+      <span class="sep"></span><span class="grow">General Meeting</span><span class="muted"><b id="demoLinesCount">0</b> lines</span></div>
+    <div class="demo-caption">The floating bar stays on top of Zoom while captions are captured.</div>
+    </div>
+    <p class="hero-foot muted">Sample meeting. No real names.</p>
+  </aside>
+
+  <main class="steps">
+    <div class="dots" role="tablist" aria-label="Welcome steps">
+      <button class="step-dot on" data-go="0" aria-label="Step 1"></button>
+      <button class="step-dot" data-go="1" aria-label="Step 2"></button>
+      <button class="step-dot" data-go="2" aria-label="Step 3"></button>
+    </div>
+
+    <section class="slide rise" data-slide="0">
+      <span class="pill">Welcome</span>
+      <h1>Minutes that write themselves while you meet</h1>
+      <p class="lead">Live Minutes reads the captions your meeting already has and drafts minutes in your organization's format as people talk. You review it, fix anything marked [verify], and approve.</p>
+      <ul class="features">
+        <li><span class="ic">✎</span><div><h3>Drafts as you meet</h3><p>Every topic becomes one clear bullet, in your template.</p></div></li>
+        <li><span class="ic">✓</span><div><h3>Tracks motions and votes</h3><p>Who moved, who seconded, and how the vote went.</p></div></li>
+        <li><span class="ic">⇩</span><div><h3>Ready to share</h3><p>Download the Word file, or publish approved minutes if your group wants to.</p></div></li>
+      </ul>
+      <div class="nav"><span></span><button class="btn primary" data-next>Next</button></div>
+    </section>
+
+    <section class="slide" data-slide="1" hidden>
+      <span class="pill">Live capture</span>
+      <h1>Bring Zoom captions in, right from this app</h1>
+      <ol class="how">
+        <li><b>Connect this computer</b><span>Paste a capture token from Settings, Capture devices. It works only for your organization and you can revoke it.</span></li>
+        <li><b>Pick the meeting</b><span>Choose the Live Minutes meeting the captions belong to.</span></li>
+        <li><b>Join Zoom here</b><span>Paste the Zoom link, turn on captions, then click Pick captions area.</span></li>
+      </ol>
+      <div class="note card"><span class="dot live"></span><p>A small floating bar shows that capture is live, how many lines were sent, and opens the draft in one click. Let everyone in the meeting know captions are being captured for minutes.</p></div>
+      <div class="nav"><button class="btn" data-back>Back</button><button class="btn primary" data-next>Next</button></div>
+    </section>
+
+    <section class="slide" data-slide="2" hidden>
+      <span class="pill">Get started</span>
+      <h1>Sign in to start your first meeting</h1>
+      <p class="lead">Use the same account as the website. New here? Create a free account, choose Personal for your own meetings or School to join your organization.</p>
+      <div class="cta">
+        <button class="btn primary" data-open="/login?mode=signup">Create a free account</button>
+        <button class="btn" data-open="/login">Sign in</button>
+      </div>
+      <ul class="trust">
+        <li>Live Minutes reads only the caption text Zoom shows in this app. It never records audio or video.</li>
+        <li>Your capture token is stored encrypted on this computer.</li>
+        <li>Nothing about your meetings is public unless your organization publishes approved minutes.</li>
+      </ul>
+      <div class="server card">
+        <div class="server-row">
+          <div><div class="muted">Server</div><div class="mono selectable" id="serverName"></div></div>
+          <button class="link" id="toggleServer" aria-expanded="false" aria-controls="serverForm">Change</button>
+        </div>
+        <div id="serverForm" hidden>
+          <p class="muted">Only change this if your college or district runs its own copy of Live Minutes. Leave it empty to use minutes.kevinle.tech.</p>
+          <div class="field"><label for="url">Server address</label><input id="url" type="url" placeholder="https://minutes.yourdistrict.edu" spellcheck="false"></div>
+          <div class="field"><label for="auth">School sign-in pages (optional)</label>
+            <textarea id="auth" rows="2" placeholder="https://login.yourdistrict.edu" spellcheck="false"></textarea>
+            <p class="muted">For security, this app opens only your server, Zoom, Microsoft, and Google. If your school's Microsoft or Google sign-in sends you to its own login page, add that address here.</p>
+          </div>
+          <div class="row"><button class="btn small" id="saveServer">Save server</button><span class="err" id="serverErr"></span></div>
+        </div>
+      </div>
+      <div class="nav"><button class="btn" data-back>Back</button><span class="muted"><span id="version"></span> · <button class="link" id="updateBtn">Check for updates</button></span></div>
+    </section>
+  </main>
+</div>
+<script src="welcome.js"></script>
+</body>
+</html>

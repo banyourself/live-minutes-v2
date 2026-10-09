@@ -1,0 +1,24 @@
+.git
+.env
+.env.*
+!.env.production.example
+**/node_modules
+web/dist
+desktop
+capture-extension
+sessions
+server-data
+tests
+server/tests
+**/__pycache__
+*.docx
+*.pdf
+*.vtt
+ASG*
+minutes *.json
+summary *.json
+transcript*.txt
+.capture_token
+.zoom_token.json
+.zoom_user_token.json
+backups

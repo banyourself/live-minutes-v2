@@ -1,0 +1,78 @@
+{
+  "name": "live-minutes-desktop",
+  "productName": "Live Minutes",
+  "version": "1.2.4",
+  "description": "Live Minutes desktop app: your meetings and minutes, plus live Zoom caption capture with a floating status bar.",
+  "main": "main.js",
+  "author": "Live Minutes",
+  "license": "UNLICENSED",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win nsis --publish never",
+    "dist:dir": "electron-builder --win dir --publish never"
+  },
+  "devDependencies": {
+    "electron": "^44.5.1",
+    "electron-builder": "^26.15.3"
+  },
+  "build": {
+    "appId": "app.liveminutes.desktop",
+    "productName": "Live Minutes",
+    "directories": {
+      "output": "release",
+      "buildResources": "build"
+    },
+    "files": [
+      "main.js",
+      "zoom-url.js",
+      "preload.js",
+      "capture-preload.js",
+      "ui.css",
+      "welcome.html",
+      "welcome.css",
+      "welcome.js",
+      "capture.html",
+      "capture.css",
+      "capture.js",
+      "float.html",
+      "float.css",
+      "float.js",
+      "titlebar.html",
+      "titlebar.css",
+      "titlebar.js",
+      "logo.svg",
+      "icon.png"
+    ],
+    "asar": true,
+    "electronFuses": {
+      "runAsNode": false,
+      "enableCookieEncryption": true,
+      "enableNodeOptionsEnvironmentVariable": false,
+      "enableNodeCliInspectArguments": false,
+      "enableEmbeddedAsarIntegrityValidation": true,
+      "onlyLoadAppFromAsar": true
+    },
+    "win": {
+      "target": "nsis",
+      "icon": "icon.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "perMachine": false,
+      "createDesktopShortcut": true,
+      "shortcutName": "Live Minutes",
+      "differentialPackage": false
+    },
+    "publish": [
+      {
+        "provider": "generic",
+        "url": "https://minutes.kevinle.tech/api/downloads"
+      }
+    ]
+  },
+  "dependencies": {
+    "electron-updater": "6.8.9"
+  }
+}

@@ -1,0 +1,38 @@
+# Secrets and tokens: never commit
+.env
+.env.*
+!.env.example
+!.env.production.example
+.zoom_token.json
+.zoom_user_token.json
+.capture_token
+
+# Meeting data: transcripts, drafts, and minutes stay on this computer
+sessions/
+*.docx
+*.pdf
+*.vtt
+ASG */
+ASG*.txt
+minutes*.json
+summary*.json
+transcript*.txt
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# Build output and local data for the hosted edition
+node_modules/
+web/dist/
+desktop/release/
+server-data/
+*.db
+*.db-wal
+*.db-shm
+.env.production
+
+# Local database and file backups
+backups/
+.move.*

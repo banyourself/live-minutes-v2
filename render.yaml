@@ -1,0 +1,64 @@
+databases:
+  - name: liveminutes-db
+    plan: basic-256mb
+    databaseName: liveminutes
+    user: liveminutes
+
+services:
+  - type: web
+    name: liveminutes-web
+    runtime: docker
+    plan: starter
+    healthCheckPath: /api/health
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase: { name: liveminutes-db, property: connectionString }
+      - key: SECRET_KEY
+        generateValue: true
+      - key: PUBLIC_URL
+        sync: false
+      - key: SECURE_COOKIES
+        value: "1"
+      - key: ALLOW_SIGNUP
+        value: "0"
+      - key: TRUSTED_PROXY_HOPS
+        value: "1"
+      - key: MAIL_BACKEND
+        value: smtp
+      - key: MAIL_FROM
+        sync: false
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_USERNAME
+        sync: false
+      - key: SMTP_PASSWORD
+        sync: false
+      - key: PLATFORM_ADMIN_EMAILS
+        sync: false
+      - key: S3_BUCKET
+        sync: false
+      - key: AWS_ACCESS_KEY_ID
+        sync: false
+      - key: AWS_SECRET_ACCESS_KEY
+        sync: false
+      - key: S3_ENDPOINT_URL
+        sync: false
+
+  - type: worker
+    name: liveminutes-worker
+    runtime: docker
+    plan: starter
+    dockerCommand: python -m server.worker
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase: { name: liveminutes-db, property: connectionString }
+      - key: SECRET_KEY
+        sync: false
+      - key: S3_BUCKET
+        sync: false
+      - key: AWS_ACCESS_KEY_ID
+        sync: false
+      - key: AWS_SECRET_ACCESS_KEY
+        sync: false
+      - key: S3_ENDPOINT_URL
+        sync: false

@@ -1,0 +1,16 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Live Minutes options</title>
+<style>body{font:14px system-ui,sans-serif;margin:24px;max-width:560px} input,select{width:100%;padding:6px;margin:4px 0 12px;box-sizing:border-box} .muted{color:#666} .err{color:#b3261e}</style>
+</head><body>
+<h2>Live Minutes Caption Reader</h2>
+<p class="muted">Create a capture token in Live Minutes under Settings &rarr; Capture devices.</p>
+<label>Server address (leave empty for the Live Minutes app on this computer)<input id="server" placeholder="https://minutes.kevinle.tech"></label>
+<label>Capture token<input id="token" type="password"></label>
+<button id="save">Save and load meetings</button> <span id="msg"></span>
+<div id="pick" style="display:none">
+  <label>Meeting to send captions to<select id="meeting"></select></label>
+</div>
+<p class="err" id="err"></p>
+<p class="muted">This extension only reads the caption/transcript panel you choose in the Zoom web client and sends it to the server above. It sends nothing anywhere else.</p>
+<script src="options.js"></script>
+</body></html>

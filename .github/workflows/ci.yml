@@ -1,0 +1,154 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: lm_test
+          POSTGRES_USER: lm
+          POSTGRES_PASSWORD: lm
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U lm -d lm_test" --health-interval 5s --health-timeout 5s --health-retries 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: "3.14"
+      - run: pip install --require-hashes --no-deps -r server/requirements.txt
+      - name: Engine tests
+        run: python -m unittest discover -s tests -v
+      - name: Server tests on SQLite
+        run: python -m unittest server.tests.test_server -v
+      - name: Server tests on PostgreSQL
+        env:
+          TEST_DATABASE_URL: postgresql://lm:lm@localhost:5432/lm_test
+        run: python -m unittest server.tests.test_server -v
+      - name: Migrations apply cleanly on PostgreSQL
+        env:
+          DATABASE_URL: postgresql://lm:lm@localhost:5432/lm_migrate
+          LIVE_MINUTES_DEV: "1"
+        run: |
+          PGPASSWORD=lm psql -h localhost -U lm -d lm_test -c "CREATE DATABASE lm_migrate"
+          python -m alembic -c server/alembic.ini upgrade head
+          python -m alembic -c server/alembic.ini check
+
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: "3.14"
+      - name: Install scanners
+        run: pip install pip-audit==2.10.1 bandit==1.9.4 semgrep==1.178.0
+      - name: Python dependency audit
+        run: pip-audit -r server/requirements.txt --require-hashes --progress-spinner off
+      - name: Python code scan
+        run: bandit -q -r server minutes_app zoom_minutes.py -x server/tests -ll -s B310
+      - name: Semgrep
+        run: >-
+          semgrep scan --metrics=off --error --config p/python --config p/typescript --config p/javascript
+          --config p/secrets --config p/owasp-top-ten --exclude node_modules --exclude web/dist .
+      - name: Web dependency audit
+        working-directory: web
+        run: npm audit --omit=dev --audit-level=high
+      - name: Desktop dependency audit
+        working-directory: desktop
+        run: |
+          npm audit --json > audit.json || true
+          python3 ../.github/audit_allow.py audit.json
+      - name: Secret scan of the full history
+        run: |
+          curl -sSfL -o gitleaks.tar.gz https://github.com/gitleaks/gitleaks/releases/download/v8.30.1/gitleaks_8.30.1_linux_x64.tar.gz
+          echo "551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb  gitleaks.tar.gz" | sha256sum -c -
+          tar -xzf gitleaks.tar.gz gitleaks
+          ./gitleaks git --redact --no-banner -v .
+
+  web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci
+        working-directory: web
+      - run: npm test
+        working-directory: web
+      - run: npm run build
+        working-directory: web
+
+  docker:
+    runs-on: ubuntu-latest
+    needs: [tests, web]
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - run: docker build -t live-minutes:ci .
+      - name: Image vulnerability scan
+        run: |
+          curl -sSfL -o grype.tar.gz https://github.com/anchore/grype/releases/download/v0.119.0/grype_0.119.0_linux_amd64.tar.gz
+          echo "3fa2dc4b924621ab65404cf08d0b8438d896d80ab949c9d5a4ca283c36004c9b  grype.tar.gz" | sha256sum -c -
+          tar -xzf grype.tar.gz grype
+          ./grype live-minutes:ci --only-fixed --fail-on high
+
+  desktop:
+    runs-on: windows-latest
+    needs: [tests]
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: desktop/package-lock.json
+      - run: npm ci
+        working-directory: desktop
+      - run: npm run dist
+        working-directory: desktop
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: github.event_name == 'workflow_dispatch'
+        with:
+          name: live-minutes-windows-installer
+          path: desktop/release/*.exe
+          retention-days: 3
+      - name: Attach installer to the release
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" desktop/release/*.exe --title "$GITHUB_REF_NAME" --generate-notes || gh release upload "$GITHUB_REF_NAME" desktop/release/*.exe --clobber

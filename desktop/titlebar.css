@@ -1,0 +1,15 @@
+body { background: var(--bg); overflow: hidden; }
+.bar {
+  -webkit-app-region: drag;
+  height: 36px; display: flex; align-items: center; gap: 2px; padding: 0 140px 0 12px;
+  border-bottom: 1px solid var(--line);
+}
+.bar img { width: 18px; height: 18px; margin-right: 8px; }
+.menus { display: flex; gap: 2px; }
+.menus button {
+  -webkit-app-region: no-drag;
+  height: 26px; padding: 0 10px; border: 0; border-radius: 6px;
+  background: transparent; color: var(--soft); font: inherit; font-size: 12.5px; cursor: default;
+}
+.menus button:hover, .menus button.open { background: rgba(132, 184, 255, 0.12); color: var(--text); }
+.menus button:focus-visible { outline: 2px solid var(--blue); outline-offset: -2px; }

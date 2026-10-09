@@ -1,0 +1,16 @@
+body.float { background: transparent; overflow: hidden; }
+.bar { -webkit-app-region: drag; margin: 6px; height: 48px; display: flex; align-items: center; gap: 10px; padding: 0 8px 0 12px;
+  border-radius: 999px; background: rgba(10, 17, 31, 0.86); border: 1px solid rgba(132, 184, 255, 0.28);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35); backdrop-filter: blur(18px); white-space: nowrap; }
+.bar img { width: 22px; height: 22px; flex: none; }
+.state { display: inline-flex; align-items: center; gap: 7px; font-weight: 650; font-size: 13px; }
+.time { font: 600 13px "Cascadia Mono", Consolas, monospace; color: var(--soft); }
+.sep { width: 1px; height: 22px; background: var(--line-strong); }
+.title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; font-size: 13px; color: var(--text); }
+.count { font-size: 12.5px; color: var(--soft); }
+.count b { color: var(--text); }
+.icon-btn { -webkit-app-region: no-drag; height: 30px; padding: 0 11px; border-radius: 999px; border: 1px solid var(--line-strong);
+  background: rgba(132, 184, 255, 0.08); color: var(--text); font: 600 12px "Segoe UI", sans-serif; cursor: pointer; }
+.icon-btn:hover { background: rgba(132, 184, 255, 0.18); border-color: var(--blue); }
+.icon-btn:focus-visible { outline: 2px solid var(--blue); outline-offset: 1px; }
+.icon-btn.close { width: 30px; padding: 0; }

@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'; img-src 'self' data:">
+<title>Live Minutes bar</title>
+<link rel="stylesheet" href="ui.css">
+<link rel="stylesheet" href="float.css">
+</head>
+<body class="float">
+<div class="bar" role="status" aria-live="polite">
+  <img src="logo.svg" alt="Live Minutes">
+  <span class="state"><span class="dot" id="dot"></span><span id="label">Live</span></span>
+  <span class="time" id="timer">00:00</span>
+  <span class="sep"></span>
+  <span class="title" id="title"></span>
+  <span class="count"><b id="lines">0</b> lines</span>
+  <button class="icon-btn" id="draft" title="Open the draft">Draft</button>
+  <button class="icon-btn" id="panel" title="Open Live capture">Panel</button>
+  <button class="icon-btn close" id="hide" title="Hide this bar" aria-label="Hide this bar">✕</button>
+</div>
+<script src="float.js"></script>
+</body>
+</html>
