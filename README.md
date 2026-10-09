@@ -451,8 +451,9 @@ Copyright (C) 2026 Kevin Le. Live Minutes is source-available under the
 including personal use and use by schools, colleges, districts, charities, and government bodies. Commercial use, such
 as selling it, building it into a paid product, or running it as a paid service, needs my written permission. Any copy
 you share has to include the license and the line `Required Notice: Copyright (C) 2026 Kevin Le`.
-Bundled third-party data keeps its own license: the US college list in `server/app/data` is MIT licensed
-([us_colleges.LICENSE.txt](server/app/data/us_colleges.LICENSE.txt)).
+Bundled third-party data and fonts keep their own licenses: the US college list in `server/app/data` is MIT licensed
+([us_colleges.LICENSE.txt](server/app/data/us_colleges.LICENSE.txt)), and the self-hosted fonts are under the SIL Open
+Font License 1.1 and the Apache License 2.0 ([web/public/fonts](web/public/fonts/README.md)).
 
 ## Trademark
 
