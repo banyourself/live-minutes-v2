@@ -446,10 +446,18 @@ how to report one.
 
 ## License
 
-Copyright (C) 2026 Kevin Le. All rights reserved. This repository has no open-source license, so you can read the code
-and fork it on GitHub, but no other reuse rights are granted, and the desktop package is marked `UNLICENSED`.
+Copyright (C) 2026 Kevin Le. Live Minutes is source-available under the
+[PolyForm Noncommercial License 1.0.0](LICENSE). You can read, run, study, and change it for any noncommercial purpose,
+including personal use and use by schools, colleges, districts, charities, and government bodies. Commercial use, such
+as selling it, building it into a paid product, or running it as a paid service, needs my written permission. Any copy
+you share has to include the license and the line `Required Notice: Copyright (C) 2026 Kevin Le`.
 Bundled third-party data keeps its own license: the US college list in `server/app/data` is MIT licensed
 ([us_colleges.LICENSE.txt](server/app/data/us_colleges.LICENSE.txt)).
+
+## Trademark
+
+Live Minutes™ and the Live Minutes logo are trademarks of Kevin Le. The license covers the code, not the name or the
+logo: a copy or a changed version you share has to use a different name and must not suggest that I made or endorse it.
 
 ---
 

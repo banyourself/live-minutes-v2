@@ -167,7 +167,8 @@ handover is the district deploying the same template into its own subscription.
 
 Kevin's steps: activate Azure for Students, add a DNS record for minutes.kevinle.tech,
 get an AI key, and later the code-signing identity check and Zoom developer app. I own the
-code; any license for district use is a separate agreement.
+code, which is published under the PolyForm Noncommercial License 1.0.0, so schools and districts can use it
+for free; commercial use needs a separate agreement.
 
 ---
 
