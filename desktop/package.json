@@ -1,7 +1,7 @@
 {
   "name": "live-minutes-desktop",
   "productName": "Live Minutes",
-  "version": "1.2.4",
+  "version": "1.2.5",
   "description": "Live Minutes desktop app: your meetings and minutes, plus live Zoom caption capture with a floating status bar.",
   "main": "main.js",
   "author": "Live Minutes",

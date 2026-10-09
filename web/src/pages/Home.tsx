@@ -57,7 +57,7 @@ export default function Home() {
             <p className="sub">Free to use, with a built-in AI that needs no key or account. It is slower, so bring your own AI if you want drafts in minutes.</p>
           </div>
           <figure className="home-shot">
-            <img src="/home/draft.webp" width={1200} height={780} alt="A draft in Live Minutes with called to order and adjourned times, roll call, and a motion tracker, from a sample meeting with no real names" />
+            <img src="/home/welcome-tour.webp" width={1200} height={780} alt="The Live Minutes welcome tour: live captions from a sample meeting turning into draft minutes, with a carried motion and the floating capture bar, and no real names" />
           </figure>
         </section>
 

@@ -88,7 +88,7 @@ def head(meta):
             out.append('<meta name="lm-page" content="missing" />')
         return "\n    ".join(out)
     image = origin() + "/og-image.png"
-    alt = "A Live Minutes draft with a motion tracker, from a sample meeting with no real names"
+    alt = "The Live Minutes welcome tour: live captions from a sample meeting turning into draft minutes, with no real names"
     out += ['<meta name="description" content="' + e(meta["description"]) + '" />',
             '<meta name="robots" content="index, follow, max-image-preview:large" />',
             '<link rel="canonical" href="' + e(meta["url"]) + '" />',
