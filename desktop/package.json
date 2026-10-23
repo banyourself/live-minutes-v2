@@ -13,7 +13,7 @@
     "dist:dir": "electron-builder --win dir --publish never"
   },
   "devDependencies": {
-    "electron": "^44.5.1",
+    "electron": "^44.8.0",
     "electron-builder": "^26.15.3"
   },
   "build": {
